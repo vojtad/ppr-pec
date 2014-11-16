@@ -116,29 +116,14 @@ class Game
     void randomize()
     {
         _q = 1 + rand() % (_rows * _columns - 1);
-        _q *= 3;
-
-        randomizeStep(1);
-
-        _d = 0;
-        for (int r = 0; r < _rows; ++r)
-        {
-            for (int c = 0; c < _columns; ++c)
-            {
-                if (_gamePlan[r][c] == 0)
-                    continue;
-
-                int v = (r * _columns) + c + 1;
-                if (_gamePlan[r][c] == v)
-                    continue;
-
-                _d += abs(r - ((v - 1) / _rows)) + abs(c - ((v - 1) % _columns));
-            }
-        }
 
         _bestMoveCount = -1;
         delete [] _bestMoves;
         _bestMoves = new MoveDirection[_q];
+
+        randomizeStep(1);
+
+        calcLowerBound();
     }
 
     void walkthru()
@@ -185,6 +170,26 @@ class Game
 
         if (s < _q)
             randomizeStep(s + 1);
+    }
+
+    void calcLowerBound()
+    {
+        _d = 0;
+        for (int r = 0; r < _rows; ++r)
+        {
+            for (int c = 0; c < _columns; ++c)
+            {
+                if (_gamePlan[r][c] == 0)
+                    continue;
+
+                int v = (r * _columns) + c + 1;
+                if (_gamePlan[r][c] == v)
+                    continue;
+
+                _d += abs(r - ((_gamePlan[r][c] - 1) / _columns)) + abs(c - ((_gamePlan[r][c] - 1) % _columns));
+                cout << _d << " " << r << ", " << c << ": " << _gamePlan[r][c] << " - " << v << endl;
+            }
+        }
     }
 
     bool canMoveUp(const Move& from) const
@@ -282,6 +287,8 @@ class Game
                 _stack.push_back(Move(current.depth + 1, Left));
             }
         }
+        else
+            walkthruClosed(current);
     }
 
     void walkthruClosed(Move& current)
@@ -355,20 +362,28 @@ int main()
 {
     srand(time(0));
 
-    cout.width(4);
+    // initialize game
+    // first parameter of Game constructor is column count and second one is row count
+    Game game(5, 5);
 
-    Game game(4, 3);
-
+    // print initial game plan
     game.printGamePlan();
+
+    // randomize game plan and calculate lower and upper bounds
     game.randomize();
 
     cout << endl;
+
+    // print randomized game plan
     game.printGamePlan();
 
+    // print calculated lower and upper bounds for bb-dfs
     cout << "q = " << game.upperBound() << endl << "d = " << game.lowerBound() << endl;
 
+    // perform bb-dfs and find the best solution
     game.walkthru();
 
+    // print best solution
     game.printBest();
 
     return 0;
