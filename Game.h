@@ -5,7 +5,6 @@
 
 #include "Move.h"
 #include "GameBoard.h"
-#include "GameCommunication.h"
 
 using namespace std;
 
@@ -22,11 +21,6 @@ public:
 
     void randomize();
 
-    void sendBoard();
-    void recvBoard();
-
-    void solve();
-
 private:
     void handleOpenMove(Move& current);
     void handleClosedMove(Move& current);
@@ -34,12 +28,10 @@ private:
 
     bool isInAcceptableEndState(const Move& current) const;
 
-private:
+protected:
     GameBoard _board;
-    GameCommunication _comm;
 
     int _bestMoveCount;
-
     MoveDirection* _bestMoves;
 
     deque<Move> _stack;

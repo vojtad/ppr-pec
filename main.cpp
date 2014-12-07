@@ -1,14 +1,18 @@
 #include <iostream>
 
-#include "MPI.h"
-#include "Game.h"
-
 using namespace std;
+
+#define PARALLEL
+
+#ifdef PARALLEL
+
+#include "MPI.h"
+#include "ParallelGame.h"
 
 int main(int argc, char** argv)
 {
     MPI mpi;
-    Game* game = 0;
+    ParallelGame* game = 0;
 
     mpi.init(&argc, &argv);
 
@@ -16,7 +20,7 @@ int main(int argc, char** argv)
     {
         srand(time(0));
 
-        game = new Game(5, 5);
+        game = new ParallelGame(5, 5);
 
         // print initial game plan
         game->printGamePlan();
@@ -30,7 +34,7 @@ int main(int argc, char** argv)
     {
         unsigned char* serializedBoard = mpi.recvBoard();
 
-        game = new Game();
+        game = new ParallelGame();
         game->recvBoard();
     }
 
@@ -40,3 +44,25 @@ int main(int argc, char** argv)
 
     return 0;
 }
+
+#else
+
+#include "SequentialGame.h"
+
+int main()
+{
+    srand(time(0));
+
+    SequentialGame game(5, 5);
+
+    game.printGamePlan();
+    game.randomize();
+
+    game.solve();
+
+    game.printBest();
+
+    return 0;
+}
+
+#endif

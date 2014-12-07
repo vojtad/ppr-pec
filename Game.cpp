@@ -51,39 +51,6 @@ void Game::randomize()
     _bestMoves = new MoveDirection[_board.upperBound()];
 }
 
-void Game::sendBoard()
-{
-    _comm.sendBoard(_board);
-}
-
-void Game::recvBoard()
-{
-    _comm.recvBoard(_board);
-}
-
-void Game::solve()
-{
-    _stack.push_back(Move(0, NoDirection));
-
-    while (!_stack.empty())
-    {
-        Move& current = _stack.back();
-
-        switch (current.state)
-        {
-            case Open:
-                handleOpenMove(current);
-                break;
-            case Closed:
-                handleClosedMove(current);
-                break;
-            case Skip:
-                handleSkipMove(current);
-                break;
-        }
-    }
-}
-
 void Game::handleOpenMove(Move& current)
 {
     _board.makeMove(current.direction);
