@@ -4,56 +4,26 @@
 
 #define D(x) //x
 
-Game::Game(int a, int b)
-        : _columns(a), _rows(b), _q(0), _d(0), _gamePlan(0), _currentRow(b - 1), _currentColumn(a - 1),
-          _bestMoveCount(-1), _bestMoves(0)
+Game::Game()
+        : _bestMoveCount(-1), _bestMoves(0)
 {
-    _gamePlan = new int* [_rows];
-    for (int r = 0; r < _rows; ++r)
-    {
-        _gamePlan[r] = new int[_columns];
 
-        for (int c = 0; c < _columns; ++c)
-            _gamePlan[r][c] = (r * _columns) + c + 1;
-    }
+}
 
-    _gamePlan[_currentRow][_currentColumn] = 0;
+Game::Game(int a, int b)
+        : _board(a, b), _bestMoveCount(-1), _bestMoves(0)
+{
+
 }
 
 Game::~Game()
 {
-    for (int r = 0; r < _rows; ++r)
-    {
-        delete[] _gamePlan[r];
-        _gamePlan[r] = 0;
-    }
 
-    delete[] _gamePlan;
-}
-
-int Game::upperBound() const
-{
-    return _q;
-}
-
-int Game::lowerBound() const
-{
-    return _d;
 }
 
 void Game::printGamePlan() const
 {
-    for (int r = 0; r < _rows; ++r)
-    {
-        for (int c = 0; c < _columns; ++c)
-        {
-            cout.width(4);
-            cout.fill(' ');
-            cout << left << _gamePlan[r][c];
-        }
-
-        cout << endl;
-    }
+    _board.print();
 }
 
 void Game::printBest() const
@@ -74,18 +44,24 @@ void Game::printBest() const
 
 void Game::randomize()
 {
-    _q = 1 + rand() % (_rows * _columns - 1);
+    _board.randomize();
 
     _bestMoveCount = -1;
     delete[] _bestMoves;
-    _bestMoves = new MoveDirection[_q];
-
-    randomizeStep(1);
-
-    calcLowerBound();
+    _bestMoves = new MoveDirection[_board.upperBound()];
 }
 
-void Game::walkthru()
+void Game::sendBoard()
+{
+    _comm.sendBoard(_board);
+}
+
+void Game::recvBoard()
+{
+    _comm.recvBoard(_board);
+}
+
+void Game::solve()
 {
     _stack.push_back(Move(0, NoDirection));
 
@@ -96,106 +72,23 @@ void Game::walkthru()
         switch (current.state)
         {
             case Open:
-                walkthruOpen(current);
+                handleOpenMove(current);
                 break;
             case Closed:
-                walkthruClosed(current);
+                handleClosedMove(current);
+                break;
+            case Skip:
+                handleSkipMove(current);
                 break;
         }
     }
 }
 
-void Game::randomizeStep(int s)
+void Game::handleOpenMove(Move& current)
 {
-    int dR = 0, dC = 0;
-    int d = rand() % 4;
+    _board.makeMove(current.direction);
 
-    if (d == 0)
-        dR = _currentRow > 0 ? -1 : 1;
-    else if (d == 1)
-        dC = _currentColumn < (_columns - 1) ? 1 : -1;
-    else if (d == 2)
-        dR = _currentRow < (_rows - 1) ? 1 : -1;
-    else
-        dC = _currentColumn > 0 ? -1 : 1;
-
-    int nR = _currentRow + dR, nC = _currentColumn + dC;
-
-    _gamePlan[_currentRow][_currentColumn] = _gamePlan[nR][nC];
-    _currentRow = nR;
-    _currentColumn = nC;
-    _gamePlan[_currentRow][_currentColumn] = 0;
-
-    if (s < _q)
-        randomizeStep(s + 1);
-}
-
-void Game::calcLowerBound()
-{
-    _d = 0;
-    for (int r = 0; r < _rows; ++r)
-    {
-        for (int c = 0; c < _columns; ++c)
-        {
-            if (_gamePlan[r][c] == 0)
-                continue;
-
-            int v = (r * _columns) + c + 1;
-            if (_gamePlan[r][c] == v)
-                continue;
-
-            _d += abs(r - ((_gamePlan[r][c] - 1) / _columns)) + abs(c - ((_gamePlan[r][c] - 1) % _columns));
-            cout << _d << " " << r << ", " << c << ": " << _gamePlan[r][c] << " - " << v << endl;
-        }
-    }
-}
-
-bool Game::canMoveUp(const Move& from) const
-{
-    return from.direction != Down && _currentRow > 0;
-}
-
-bool Game::canMoveRight(const Move& from) const
-{
-    return from.direction != Left && _currentColumn < (_columns - 1);
-}
-
-bool Game::canMoveDown(const Move& from) const
-{
-    return from.direction != Up && _currentRow < (_rows - 1);
-}
-
-bool Game::canMoveLeft(const Move& from) const
-{
-    return from.direction != Right && _currentColumn > 0;
-}
-
-void Game::walkthruOpen(Move & current)
-{
-    int oldRow = _currentRow, oldColumn = _currentColumn;
-
-    switch (current.direction)
-    {
-        case Up:
-            --_currentRow;
-            break;
-        case Right:
-            ++_currentColumn;
-            break;
-        case Down:
-            ++_currentRow;
-            break;
-        case Left:
-            --_currentColumn;
-            break;
-        case NoDirection:
-            break;
-    }
-
-    _gamePlan[oldRow][oldColumn] = _gamePlan[_currentRow][_currentColumn];
-    _gamePlan[_currentRow][_currentColumn] = 0;
-
-    D(cout << "walkthruOpen(" << current.depth << ", " << MoveDirectionNames[current.direction] << "): " << _currentRow << ", " << _currentColumn << endl);
+    D(cout << "handleOpenMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << "): " << _currentRow << ", " << _currentColumn << endl);
 
     current.state = Closed;
 
@@ -219,86 +112,54 @@ void Game::walkthruOpen(Move & current)
             _bestMoveCount = current.depth;
         }
     }
-    else if (current.depth < _q && (_bestMoveCount == -1 || current.depth < _bestMoveCount))
+    else if (current.depth < _board.upperBound() && (_bestMoveCount == -1 || current.depth < _bestMoveCount))
     {
-        if (canMoveUp(current))
+        if (_board.canMoveUp(current))
         {
             D(cout << "    add up" << endl);
             _stack.push_back(Move(current.depth + 1, Up));
         }
 
-        if (canMoveRight(current))
+        if (_board.canMoveRight(current))
         {
             D(cout << "    add right" << endl);
             _stack.push_back(Move(current.depth + 1, Right));
         }
 
-        if (canMoveDown(current))
+        if (_board.canMoveDown(current))
         {
             D(cout << "    add down" << endl);
             _stack.push_back(Move(current.depth + 1, Down));
         }
 
-        if (canMoveLeft(current))
+        if (_board.canMoveLeft(current))
         {
             D(cout << "    add left" << endl);
             _stack.push_back(Move(current.depth + 1, Left));
         }
     }
     else
-        walkthruClosed(current);
+        handleClosedMove(current);
 }
 
-void Game::walkthruClosed(Move & current)
+void Game::handleClosedMove(Move& current)
 {
-    int oldRow = _currentRow, oldColumn = _currentColumn;
+    _board.makeMove(current.oppositeDirection());
 
-    switch (current.direction)
-    {
-        case Up:
-            ++_currentRow;
-            break;
-        case Right:
-            --_currentColumn;
-            break;
-        case Down:
-            --_currentRow;
-            break;
-        case Left:
-            ++_currentColumn;
-            break;
-        case NoDirection:
-            break;
-    }
+    D(cout << "handleClosedMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << "): " << _currentRow << ", " << _currentColumn << endl);
 
-    _gamePlan[oldRow][oldColumn] = _gamePlan[_currentRow][_currentColumn];
-    _gamePlan[_currentRow][_currentColumn] = 0;
+    _stack.pop_back();
+}
 
-    D(cout << "walkthruClosed(" << current.depth << ", " << MoveDirectionNames[current.direction] << "): " << _currentRow << ", " << _currentColumn << endl);
-
+void Game::handleSkipMove(Move& current)
+{
     _stack.pop_back();
 }
 
 bool Game::isInAcceptableEndState(const Move& current) const
 {
-    if (current.depth < _d)
+    if (current.depth < _board.lowerBound())
         return false;
 
-    if (_currentRow != (_rows - 1) || _currentColumn != (_columns - 1))
-        return false;
-
-    for (int r = 0; r < _rows; ++r)
-    {
-        for (int c = 0; c < _columns; ++c)
-        {
-            if (r == (_rows - 1) && c == (_columns - 1))
-                break;
-
-            int v = (r * _columns) + c + 1;
-            if (_gamePlan[r][c] != v)
-                return false;
-        }
-    }
-
-    return true;
+    return _board.isInAcceptableEndState();
 }

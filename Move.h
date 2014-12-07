@@ -15,7 +15,8 @@ extern const char* MoveDirectionNames[5];
 enum MoveState
 {
     Open,
-    Closed
+    Closed,
+    Skip
 };
 
 struct Move
@@ -33,6 +34,29 @@ struct Move
     Move(int depth, MoveDirection direction)
             : depth(depth), direction(direction), state(Open)
     {
+    }
+
+    MoveDirection oppositeDirection()
+    {
+        switch (direction)
+        {
+            case NoDirection:
+                return NoDirection;
+
+            case Up:
+                return Down;
+
+            case Right:
+                return Left;
+
+            case Down:
+                return Up;
+
+            case Left:
+                return Right;
+        }
+
+        return NoDirection;
     }
 };
 

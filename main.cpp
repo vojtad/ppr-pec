@@ -1,36 +1,42 @@
 #include <iostream>
 
+#include "MPI.h"
 #include "Game.h"
 
 using namespace std;
 
-int main()
+int main(int argc, char** argv)
 {
-    srand(time(0));
+    MPI mpi;
+    Game* game = 0;
 
-    // initialize game
-    // first parameter of Game constructor is column count and second one is row count
-    Game game(5, 5);
+    mpi.init(&argc, &argv);
 
-    // print initial game plan
-    game.printGamePlan();
+    if (mpi.isMaster())
+    {
+        srand(time(0));
 
-    // randomize game plan and calculate lower and upper bounds
-    game.randomize();
+        game = new Game(5, 5);
 
-    cout << endl;
+        // print initial game plan
+        game->printGamePlan();
 
-    // print randomized game plan
-    game.printGamePlan();
+        // randomize game plan and calculate lower and upper bounds
+        game->randomize();
 
-    // print calculated lower and upper bounds for bb-dfs
-    cout << "q = " << game.upperBound() << endl << "d = " << game.lowerBound() << endl;
+        game->sendBoard();
+    }
+    else
+    {
+        unsigned char* serializedBoard = mpi.recvBoard();
 
-    // perform bb-dfs and find the best solution
-    game.walkthru();
+        game = new Game();
+        game->recvBoard();
+    }
 
-    // print best solution
-    game.printBest();
+    game->solve();
+
+    mpi.finalize();
 
     return 0;
 }

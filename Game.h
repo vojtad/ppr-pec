@@ -4,47 +4,42 @@
 #include <deque>
 
 #include "Move.h"
+#include "GameBoard.h"
+#include "GameCommunication.h"
 
 using namespace std;
 
 class Game
 {
 public:
+    Game();
     Game(int a, int b);
-    ~Game();
 
-    int upperBound() const;
-    int lowerBound() const;
+    ~Game();
 
     void printGamePlan() const;
     void printBest() const;
 
     void randomize();
 
-    void walkthru();
+    void sendBoard();
+    void recvBoard();
+
+    void solve();
 
 private:
-    void randomizeStep(int s);
-    void calcLowerBound();
-
-    bool canMoveUp(const Move& from) const;
-    bool canMoveRight(const Move& from) const;
-    bool canMoveDown(const Move& from) const;
-    bool canMoveLeft(const Move& from) const;
-
-    void walkthruOpen(Move& current);
-    void walkthruClosed(Move& current);
+    void handleOpenMove(Move& current);
+    void handleClosedMove(Move& current);
+    void handleSkipMove(Move& current);
 
     bool isInAcceptableEndState(const Move& current) const;
 
 private:
-    int _columns, _rows;
-    int _q, _d;
-
-    int** _gamePlan;
-    int _currentRow, _currentColumn;
+    GameBoard _board;
+    GameCommunication _comm;
 
     int _bestMoveCount;
+
     MoveDirection* _bestMoves;
 
     deque<Move> _stack;
