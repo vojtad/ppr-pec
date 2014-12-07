@@ -2,7 +2,7 @@
 #define PARALLEL_GAME_H
 
 #include "Game.h"
-#include "GameCommunication.h"
+#include "ParallelGameCommunication.h"
 
 class ParallelGame : public Game
 {
@@ -14,7 +14,7 @@ public:
     void recvBoard();
 
 private:
-    GameCommunication _comm;
+    ParallelGameCommunication _comm;
 };
 
 #endif

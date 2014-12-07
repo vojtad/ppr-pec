@@ -3,7 +3,7 @@
 
 #include "GameBoard.h"
 
-class GameCommunication
+class ParallelGameCommunication
 {
 public:
     void sendBoard(const GameBoard& board);

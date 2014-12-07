@@ -21,7 +21,9 @@ public:
 
     void randomize();
 
-private:
+protected:
+    void step();
+
     void handleOpenMove(Move& current);
     void handleClosedMove(Move& current);
     void handleSkipMove(Move& current);

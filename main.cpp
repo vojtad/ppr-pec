@@ -2,9 +2,7 @@
 
 using namespace std;
 
-#define PARALLEL
-
-#ifdef PARALLEL
+#ifdef BUILD_PARALLEL
 
 #include "MPI.h"
 #include "ParallelGame.h"
@@ -57,6 +55,9 @@ int main()
 
     game.printGamePlan();
     game.randomize();
+    game.printGamePlan();
+
+    cout << endl;
 
     game.solve();
 

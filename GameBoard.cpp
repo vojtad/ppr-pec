@@ -7,7 +7,6 @@ using namespace std;
 GameBoard::GameBoard()
         : _columns(0), _rows(0), _q(0), _d(0), _gamePlan(0), _currentRow(0), _currentColumn(0)
 {
-
 }
 
 GameBoard::GameBoard(int a, int b)
@@ -59,6 +58,9 @@ void GameBoard::print() const
 
         cout << endl;
     }
+
+    cout << "Lower bound: " << _d << endl;
+    cout << "Upper bound: " << _q << endl;
 }
 
 void GameBoard::randomize()
@@ -85,7 +87,6 @@ void GameBoard::calcLowerBound()
                 continue;
 
             _d += abs(r - ((_gamePlan[r][c] - 1) / _columns)) + abs(c - ((_gamePlan[r][c] - 1) % _columns));
-            cout << _d << " " << r << ", " << c << ": " << _gamePlan[r][c] << " - " << v << endl;
         }
     }
 }

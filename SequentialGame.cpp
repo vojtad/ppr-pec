@@ -11,19 +11,6 @@ void SequentialGame::solve()
 
     while (!_stack.empty())
     {
-        Move& current = _stack.back();
-
-        switch (current.state)
-        {
-            case Open:
-                handleOpenMove(current);
-                break;
-            case Closed:
-                handleClosedMove(current);
-                break;
-            case Skip:
-                handleSkipMove(current);
-                break;
-        }
+        step();
     }
 }

@@ -7,18 +7,15 @@
 Game::Game()
         : _bestMoveCount(-1), _bestMoves(0)
 {
-
 }
 
 Game::Game(int a, int b)
         : _board(a, b), _bestMoveCount(-1), _bestMoves(0)
 {
-
 }
 
 Game::~Game()
 {
-
 }
 
 void Game::printGamePlan() const
@@ -49,6 +46,24 @@ void Game::randomize()
     _bestMoveCount = -1;
     delete[] _bestMoves;
     _bestMoves = new MoveDirection[_board.upperBound()];
+}
+
+void Game::step()
+{
+    Move& current = _stack.back();
+
+    switch (current.state)
+    {
+        case Open:
+            handleOpenMove(current);
+            break;
+        case Closed:
+            handleClosedMove(current);
+            break;
+        case Skip:
+            handleSkipMove(current);
+            break;
+    }
 }
 
 void Game::handleOpenMove(Move& current)
