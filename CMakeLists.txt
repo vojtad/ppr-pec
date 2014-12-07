@@ -3,5 +3,5 @@ project(ppr_pec)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp Move.cpp Game.cpp)
 add_executable(ppr_pec ${SOURCE_FILES})
