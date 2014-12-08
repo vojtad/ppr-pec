@@ -11,6 +11,7 @@ int main(int argc, char** argv)
 {
     MPI mpi;
     ParallelGame* game = 0;
+    double t1, t2;
 
     mpi.init(&argc, &argv);
 
@@ -26,17 +27,22 @@ int main(int argc, char** argv)
         // randomize game plan and calculate lower and upper bounds
         game->randomize();
 
-        game->sendBoard();
+        mpi.barrier();
+        t1 = mpi.time();
     }
     else
     {
-        unsigned char* serializedBoard = mpi.recvBoard();
-
         game = new ParallelGame();
-        game->recvBoard();
+
+        mpi.barrier();
+        t1 = mpi.time();
     }
 
+    game->prepare();
     game->solve();
+
+    mpi.barrier();
+    t2 = mpi.time();
 
     mpi.finalize();
 
