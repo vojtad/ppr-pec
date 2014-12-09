@@ -30,12 +30,16 @@ protected:
 
     bool isInAcceptableEndState(const Move& current) const;
 
+private:
+    virtual void onBestChanged();
+
 protected:
     GameBoard _board;
 
     int _bestMoveCount;
-    MoveDirection* _bestMoves;
+    int* _bestMoves;
 
+    int _openMoveCount;
     deque<Move> _stack;
 };
 

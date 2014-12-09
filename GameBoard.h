@@ -29,6 +29,9 @@ public:
 
     bool isInAcceptableEndState() const;
 
+    int* serialize(int* bufferSize) const;
+    void deserialize(int* buffer);
+
 private:
     void randomizeStep(int s);
 

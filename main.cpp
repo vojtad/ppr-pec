@@ -4,16 +4,18 @@ using namespace std;
 
 #ifdef BUILD_PARALLEL
 
-#include "MPI.h"
+#include "MyMPI.h"
 #include "ParallelGame.h"
 
 int main(int argc, char** argv)
 {
-    MPI mpi;
+    MyMPI mpi;
     ParallelGame* game = 0;
     double t1, t2;
 
     mpi.init(&argc, &argv);
+
+    cout << RANK << ": started." << endl;
 
     if (mpi.isMaster())
     {
@@ -21,11 +23,12 @@ int main(int argc, char** argv)
 
         game = new ParallelGame(5, 5);
 
-        // print initial game plan
-        game->printGamePlan();
-
         // randomize game plan and calculate lower and upper bounds
         game->randomize();
+
+        // print initial game plan
+        cout << RANK << ": initial game board" << endl;
+        game->printGamePlan();
 
         mpi.barrier();
         t1 = mpi.time();
@@ -33,6 +36,8 @@ int main(int argc, char** argv)
     else
     {
         game = new ParallelGame();
+
+        cout << "Slave barrier." << endl;
 
         mpi.barrier();
         t1 = mpi.time();
@@ -43,6 +48,13 @@ int main(int argc, char** argv)
 
     mpi.barrier();
     t2 = mpi.time();
+
+    if (MyMPI::instance()->isMaster())
+    {
+        game->printBest();
+
+        cout << "Solution finding took " << (t2 - t1) << " seconds." << endl;
+    }
 
     mpi.finalize();
 

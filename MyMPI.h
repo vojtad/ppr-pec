@@ -3,12 +3,17 @@
 
 #include <mpi.h>
 
-class MPI
+#define RANK MyMPI::instance()->rank()
+
+class MyMPI
 {
 public:
-    MPI();
+    MyMPI();
 
-    static MPI* instance();
+    static MyMPI* instance();
+
+    int rank() const;
+    int size() const;
 
     void init(int* argc, char*** argv);
     void finalize();
@@ -26,11 +31,11 @@ public:
     void getCount(MPI_Status& status, MPI_Datatype datatype, int* count);
 
     void send(int target, int tag);
-    void send(void* buffer, int* count, MPI_Datatype datatype, int target, int tag);
-    void recv(const MPI_Status& status, void* buffer, int* count, MPI_Datatype datatype);
+    void send(void* buffer, int count, MPI_Datatype datatype, int target, int tag);
+    void recv(const MPI_Status& status, void* buffer, int count, MPI_Datatype datatype);
 
 private:
-    static MPI* _instance;
+    static MyMPI* _instance;
 
     int _rank, _size;
 };

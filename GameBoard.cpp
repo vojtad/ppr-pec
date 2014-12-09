@@ -61,6 +61,8 @@ void GameBoard::print() const
 
     cout << "Lower bound: " << _d << endl;
     cout << "Upper bound: " << _q << endl;
+    cout << "Current row: " << _currentRow << endl;
+    cout << "Current column: " << _currentColumn << endl;
 }
 
 void GameBoard::randomize()
@@ -156,6 +158,44 @@ bool GameBoard::isInAcceptableEndState() const
     }
 
     return true;
+}
+
+int* GameBoard::serialize(int* bufferSize) const
+{
+    int* buffer = new int[6 + _rows * _columns];
+
+    buffer[0] = _rows;
+    buffer[1] = _columns;
+    buffer[2] = _d;
+    buffer[3] = _q;
+    buffer[4] = _currentRow;
+    buffer[5] = _currentColumn;
+
+    for (int r = 0; r < _rows; ++r)
+    {
+        memcpy(buffer + 6 + r * _columns, _gamePlan[r], sizeof(int) * _columns);
+    }
+
+    *bufferSize = 6 + _rows * _columns;
+    return buffer;
+}
+
+void GameBoard::deserialize(int* buffer)
+{
+    _rows = buffer[0];
+    _columns = buffer[1];
+    _d = buffer[2];
+    _q = buffer[3];
+    _currentRow = buffer[4];
+    _currentColumn = buffer[5];
+
+    _gamePlan = new int*[_rows];
+    for (int r = 0; r < _rows; ++r)
+    {
+        _gamePlan[r] = new int[_columns];
+
+        memcpy(_gamePlan[r], buffer + 6 + r * _columns, sizeof(int) * _columns);
+    }
 }
 
 void GameBoard::randomizeStep(int s)

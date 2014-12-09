@@ -1,6 +1,8 @@
 #ifndef MOVE_H
 #define MOVE_H
 
+#include <cctype>
+
 enum MoveDirection
 {
     NoDirection = 0,
@@ -10,7 +12,7 @@ enum MoveDirection
     Left
 };
 
-extern const char* MoveDirectionNames[5];
+extern const char* MoveDirectionNames;
 
 enum MoveState
 {
@@ -36,7 +38,22 @@ struct Move
     {
     }
 
-    MoveDirection oppositeDirection()
+    Move(int depth, MoveDirection direction, MoveState state)
+            : depth(depth), direction(direction), state(state)
+    {
+    }
+
+    char toChar() const
+    {
+        char c = MoveDirectionNames[direction];
+
+        if (state == Open)
+            return char(tolower(c));
+
+        return c;
+    }
+
+    MoveDirection oppositeDirection() const
     {
         switch (direction)
         {

@@ -5,12 +5,12 @@
 #define D(x) //x
 
 Game::Game()
-        : _bestMoveCount(-1), _bestMoves(0)
+        : _bestMoveCount(-1), _bestMoves(0), _openMoveCount(0)
 {
 }
 
 Game::Game(int a, int b)
-        : _board(a, b), _bestMoveCount(-1), _bestMoves(0)
+        : _board(a, b), _bestMoveCount(-1), _bestMoves(0), _openMoveCount(0)
 {
 }
 
@@ -45,34 +45,48 @@ void Game::randomize()
 
     _bestMoveCount = -1;
     delete[] _bestMoves;
-    _bestMoves = new MoveDirection[_board.upperBound()];
+    _bestMoves = new int[_board.upperBound()];
 }
 
 void Game::step()
 {
-    Move& current = _stack.back();
+    bool pop = false;
 
-    switch (current.state)
     {
-        case Open:
-            handleOpenMove(current);
-            break;
-        case Closed:
-            handleClosedMove(current);
-            break;
-        case Skip:
-            handleSkipMove(current);
-            break;
+        Move& current = _stack.back();
+
+        switch (current.state)
+        {
+            case Open:
+                handleOpenMove(current);
+                break;
+            case Closed:
+                handleClosedMove(current);
+                pop = true;
+                break;
+            case Skip:
+                handleSkipMove(current);
+                pop = true;
+                break;
+        }
     }
+
+    if (pop)
+        _stack.pop_back();
 }
 
 void Game::handleOpenMove(Move& current)
 {
+    D(cout << "handleOpenMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << ")" << endl);
+    D(_board.print());
+
     _board.makeMove(current.direction);
 
-    D(cout << "handleOpenMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << "): " << _currentRow << ", " << _currentColumn << endl);
+    D(_board.print());
+    D(cout << endl);
 
     current.state = Closed;
+    --_openMoveCount;
 
     if (isInAcceptableEndState(current))
     {
@@ -92,6 +106,8 @@ void Game::handleOpenMove(Move& current)
             }
 
             _bestMoveCount = current.depth;
+
+            onBestChanged();
         }
     }
     else if (current.depth < _board.upperBound() && (_bestMoveCount == -1 || current.depth < _bestMoveCount))
@@ -100,42 +116,51 @@ void Game::handleOpenMove(Move& current)
         {
             D(cout << "    add up" << endl);
             _stack.push_back(Move(current.depth + 1, Up));
+            ++_openMoveCount;
         }
 
         if (_board.canMoveRight(current))
         {
             D(cout << "    add right" << endl);
             _stack.push_back(Move(current.depth + 1, Right));
+            ++_openMoveCount;
         }
 
         if (_board.canMoveDown(current))
         {
             D(cout << "    add down" << endl);
             _stack.push_back(Move(current.depth + 1, Down));
+            ++_openMoveCount;
         }
 
         if (_board.canMoveLeft(current))
         {
             D(cout << "    add left" << endl);
             _stack.push_back(Move(current.depth + 1, Left));
+            ++_openMoveCount;
         }
     }
-    else
-        handleClosedMove(current);
 }
 
 void Game::handleClosedMove(Move& current)
 {
+    D(cout << "handleClosedMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << ")" << endl);
+    D(_board.print());
+
     _board.makeMove(current.oppositeDirection());
 
-    D(cout << "handleClosedMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << "): " << _currentRow << ", " << _currentColumn << endl);
+    D(_board.print());
+    D(cout << endl);
 
-    _stack.pop_back();
+
+    //_stack.pop_back();
 }
 
 void Game::handleSkipMove(Move& current)
 {
-    _stack.pop_back();
+    cout << "Skip move." << endl;
+
+    //_stack.pop_back();
 }
 
 bool Game::isInAcceptableEndState(const Move& current) const
@@ -144,4 +169,9 @@ bool Game::isInAcceptableEndState(const Move& current) const
         return false;
 
     return _board.isInAcceptableEndState();
+}
+
+void Game::onBestChanged()
+{
+
 }
