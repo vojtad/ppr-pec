@@ -110,7 +110,7 @@ void Game::handleOpenMove(Move& current)
             onBestChanged();
         }
     }
-    else if (current.depth < _board.upperBound() && (_bestMoveCount == -1 || current.depth < _bestMoveCount))
+    else if (current.depth < _board.upperBound() && (_bestMoveCount == -1 || current.depth < (_bestMoveCount - 1)))
     {
         if (_board.canMoveUp(current))
         {
