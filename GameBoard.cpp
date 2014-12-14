@@ -1,6 +1,7 @@
 #include "GameBoard.h"
 
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -63,6 +64,43 @@ void GameBoard::print() const
     cout << "Upper bound: " << _q << endl;
     cout << "Current row: " << _currentRow << endl;
     cout << "Current column: " << _currentColumn << endl;
+}
+
+void GameBoard::load(const char* filename)
+{
+    cout << "GameBoard::load: " << filename << endl;
+
+    ifstream in;
+
+    in.open(filename, ifstream::in);
+    if (!in.is_open())
+    {
+        cout << "GameBoard::load: not open" << endl;
+        return;
+    }
+
+    in >> _rows >> _columns >> _q;
+
+    _gamePlan = new int*[_rows];
+    for (int r = 0; r < _rows; ++r)
+    {
+        _gamePlan[r] = new int[_columns];
+
+        for (int c = 0; c < _columns; ++c)
+        {
+            in >> _gamePlan[r][c];
+
+            if (_gamePlan[r][c] == 0)
+            {
+                _currentRow = r;
+                _currentColumn = c;
+            }
+        }
+    }
+
+    in.close();
+
+    calcLowerBound();
 }
 
 void GameBoard::randomize()

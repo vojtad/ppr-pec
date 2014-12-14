@@ -19,6 +19,7 @@ public:
     void printGamePlan() const;
     void printBest() const;
 
+    void load(const char* filename);
     void randomize();
 
 protected:

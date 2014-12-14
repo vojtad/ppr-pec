@@ -16,6 +16,7 @@ Game::Game(int a, int b)
 
 Game::~Game()
 {
+    delete [] _bestMoves;
 }
 
 void Game::printGamePlan() const
@@ -39,8 +40,21 @@ void Game::printBest() const
     cout << endl;
 }
 
+void Game::load(const char* filename)
+{
+    cout << "Game::load: " << filename << endl;
+
+    _board.load(filename);
+
+    _bestMoveCount = -1;
+    delete[] _bestMoves;
+    _bestMoves = new int[_board.upperBound()];
+}
+
 void Game::randomize()
 {
+    srand(time(0));
+
     _board.randomize();
 
     _bestMoveCount = -1;

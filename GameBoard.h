@@ -16,6 +16,7 @@ public:
 
     void print() const;
 
+    void load(const char* filename);
     void randomize();
 
     void calcLowerBound();

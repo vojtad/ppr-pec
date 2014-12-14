@@ -19,12 +19,12 @@ int main(int argc, char** argv)
 
     if (mpi.isMaster())
     {
-        srand(time(0));
-
         game = new ParallelGame(5, 5);
 
-        // randomize game plan and calculate lower and upper bounds
-        game->randomize();
+        if (argc == 2)
+            game->load(argv[1]);
+        else
+            game->randomize(); // randomize game plan and calculate lower and upper bounds
 
         // print initial game plan
         cout << RANK << ": initial game board" << endl;
