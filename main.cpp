@@ -21,12 +21,21 @@ int main(int argc, char** argv)
 
     if (mpi.isMaster())
     {
-        game = new ParallelGame(6, 6);
-
         if (argc == 2)
+        {
+            game = new ParallelGame();
             game->load(argv[1]);
+        }
+        else if (argc == 4)
+        {
+            game = new ParallelGame(atoi(argv[1]), atoi(argv[2]));
+            game->randomize(atoi(argv[3])); // randomize game plan and calculate lower and upper bounds
+        }
         else
+        {
+            game = new ParallelGame(5, 5);
             game->randomize(); // randomize game plan and calculate lower and upper bounds
+        }
 
         // print initial game plan
         D(cerr << RANK << ": initial game board" << endl);
@@ -68,21 +77,33 @@ int main(int argc, char** argv)
 #include "SequentialGame.h"
 #include <sys/time.h>
 
-int main()
+int main(int argc, char** argv)
 {
     struct timeval tv;
 
-    srand(time(0));
+    SequentialGame* game = 0;
 
-    SequentialGame game(5, 5);
-
-    game.randomize();
+    if (argc == 2)
+        {
+            game = new SequentialGame();
+            game->load(argv[1]);
+        }
+        else if (argc == 4)
+        {
+            game = new SequentialGame(atoi(argv[1]), atoi(argv[2]));
+            game->randomize(atoi(argv[3])); // randomize game plan and calculate lower and upper bounds
+        }
+        else
+        {
+            game = new SequentialGame(5, 5);
+            game->randomize(); // randomize game plan and calculate lower and upper bounds
+        }
 
     gettimeofday(&tv, 0);
     double t1 = tv.tv_sec + tv.tv_usec / 1000000.0;
-    game.solve();
+    game->solve();
 
-    game.printBest();
+    game->printBest();
 
     gettimeofday(&tv, 0);
     double t2 = tv.tv_sec + tv.tv_usec / 1000000.0;

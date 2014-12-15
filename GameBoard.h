@@ -21,6 +21,7 @@ public:
 
     void load(const char* filename);
     void randomize();
+    void randomize(int q);
 
     void calcLowerBound();
 

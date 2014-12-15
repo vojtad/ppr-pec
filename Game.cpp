@@ -61,6 +61,17 @@ void Game::randomize()
     _bestMoves = new int[_board.upperBound()];
 }
 
+void Game::randomize(int q)
+{
+    srand(time(0));
+
+    _board.randomize(q);
+
+    _bestMoveCount = -1;
+    delete[] _bestMoves;
+    _bestMoves = new int[_board.upperBound()];
+}
+
 void Game::step()
 {
     bool pop = false;

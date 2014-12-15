@@ -120,7 +120,12 @@ void GameBoard::load(const char* filename)
 
 void GameBoard::randomize()
 {
-    _q = 1 + rand() % (_rows * _columns - 1);
+    randomize(1 + rand() % (_rows * _columns - 1));
+}
+
+void GameBoard::randomize(int q)
+{
+    _q = q;
 
     cerr << "Generating random game with row count " << _rows << " and column count " << _columns << " with " << _q << " random moves." << endl;
 

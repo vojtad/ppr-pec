@@ -1,5 +1,10 @@
 #include "SequentialGame.h"
 
+SequentialGame::SequentialGame()
+        : Game()
+{
+}
+
 SequentialGame::SequentialGame(int a, int b)
         : Game(a, b)
 {
