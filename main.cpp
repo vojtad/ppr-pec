@@ -65,7 +65,7 @@ int main(int argc, char** argv)
         game->printBest();
 
         cout << "Time: " << (t2 - t1) << endl;
-        cout << MyMPI::instance()->size() << (t2 - t1) << endl;
+        cout << MyMPI::instance()->size() << " " << (t2 - t1) << endl;
     }
 
     mpi.finalize();
