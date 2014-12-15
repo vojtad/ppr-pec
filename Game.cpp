@@ -28,21 +28,20 @@ void Game::printBest() const
 {
     if (_bestMoveCount == -1)
     {
-        cout << "No best." << endl;
+        cout << "No solution found." << endl;
         return;
     }
 
-    cout << "Best move count is " << _bestMoveCount << "." << endl;
+    cout << _bestMoveCount << " moves" << endl;
 
-    cout << "    ";
     for (int i = 0; i < _bestMoveCount; ++i)
-        cout << MoveDirectionNames[_bestMoves[i]] << ", ";
+        cout << MoveDirectionNames[_bestMoves[i]];
     cout << endl;
 }
 
 void Game::load(const char* filename)
 {
-    cout << "Game::load: " << filename << endl;
+    D(cerr << "Game::load: " << filename << endl);
 
     _board.load(filename);
 
@@ -91,20 +90,20 @@ void Game::step()
 
 void Game::handleOpenMove(Move& current)
 {
-    D(cout << "handleOpenMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << ")" << endl);
+    D(cerr << "handleOpenMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << ")" << endl);
     D(_board.print());
 
     _board.makeMove(current.direction);
 
     D(_board.print());
-    D(cout << endl);
+    D(cerr << endl);
 
     current.state = Closed;
     --_openMoveCount;
 
     if (isInAcceptableEndState(current))
     {
-        cout << "Found solution with " << current.depth << " moves." << endl;
+        D(cerr << "Found solution with " << current.depth << " moves." << endl);
 
         if (current.depth < _bestMoveCount || _bestMoveCount == -1)
         {
@@ -128,28 +127,28 @@ void Game::handleOpenMove(Move& current)
     {
         if (_board.canMoveUp(current))
         {
-            D(cout << "    add up" << endl);
+            D(cerr << "    add up" << endl);
             _stack.push_back(Move(current.depth + 1, Up));
             ++_openMoveCount;
         }
 
         if (_board.canMoveRight(current))
         {
-            D(cout << "    add right" << endl);
+            D(cerr << "    add right" << endl);
             _stack.push_back(Move(current.depth + 1, Right));
             ++_openMoveCount;
         }
 
         if (_board.canMoveDown(current))
         {
-            D(cout << "    add down" << endl);
+            D(cerr << "    add down" << endl);
             _stack.push_back(Move(current.depth + 1, Down));
             ++_openMoveCount;
         }
 
         if (_board.canMoveLeft(current))
         {
-            D(cout << "    add left" << endl);
+            D(cerr << "    add left" << endl);
             _stack.push_back(Move(current.depth + 1, Left));
             ++_openMoveCount;
         }
@@ -158,13 +157,13 @@ void Game::handleOpenMove(Move& current)
 
 void Game::handleClosedMove(Move& current)
 {
-    D(cout << "handleClosedMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << ")" << endl);
+    D(cerr << "handleClosedMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << ")" << endl);
     D(_board.print());
 
     _board.makeMove(current.oppositeDirection());
 
     D(_board.print());
-    D(cout << endl);
+    D(cerr << endl);
 
 
     //_stack.pop_back();
@@ -172,7 +171,7 @@ void Game::handleClosedMove(Move& current)
 
 void Game::handleSkipMove(Move& current)
 {
-    cout << "Skip move." << endl;
+    D(cerr << "Game::handleClosedMove(" << current.depth << ", " << MoveDirectionNames[current.direction] << ")" << endl);
 
     //_stack.pop_back();
 }

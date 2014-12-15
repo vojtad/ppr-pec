@@ -7,6 +7,8 @@ using namespace std;
 #include "MyMPI.h"
 #include "ParallelGame.h"
 
+#define D(x) //x
+
 int main(int argc, char** argv)
 {
     MyMPI mpi;
@@ -15,11 +17,11 @@ int main(int argc, char** argv)
 
     mpi.init(&argc, &argv);
 
-    cout << RANK << ": started." << endl;
+    D(cerr << RANK << ": started." << endl);
 
     if (mpi.isMaster())
     {
-        game = new ParallelGame(5, 5);
+        game = new ParallelGame(6, 6);
 
         if (argc == 2)
             game->load(argv[1]);
@@ -27,8 +29,8 @@ int main(int argc, char** argv)
             game->randomize(); // randomize game plan and calculate lower and upper bounds
 
         // print initial game plan
-        cout << RANK << ": initial game board" << endl;
-        game->printGamePlan();
+        D(cerr << RANK << ": initial game board" << endl);
+        D(game->printGamePlan());
 
         mpi.barrier();
         t1 = mpi.time();
@@ -37,7 +39,7 @@ int main(int argc, char** argv)
     {
         game = new ParallelGame();
 
-        cout << "Slave barrier." << endl;
+        D(cerr << "Slave barrier." << endl);
 
         mpi.barrier();
         t1 = mpi.time();
@@ -53,7 +55,7 @@ int main(int argc, char** argv)
     {
         game->printBest();
 
-        cout << "Solution finding took " << (t2 - t1) << " seconds." << endl;
+        cout << "Time: " << (t2 - t1) << endl;
     }
 
     mpi.finalize();
@@ -64,22 +66,28 @@ int main(int argc, char** argv)
 #else
 
 #include "SequentialGame.h"
+#include <sys/time.h>
 
 int main()
 {
+    struct timeval tv;
+
     srand(time(0));
 
     SequentialGame game(5, 5);
 
-    game.printGamePlan();
     game.randomize();
-    game.printGamePlan();
 
-    cout << endl;
-
+    gettimeofday(&tv, 0);
+    double t1 = tv.tv_sec + tv.tv_usec / 1000000.0;
     game.solve();
 
     game.printBest();
+
+    gettimeofday(&tv, 0);
+    double t2 = tv.tv_sec + tv.tv_usec / 1000000.0;
+
+    cout << "Time: " << (t2 - t1) << endl;
 
     return 0;
 }

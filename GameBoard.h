@@ -11,6 +11,9 @@ public:
 
     ~GameBoard();
 
+    int rows() const;
+    int columns() const;
+
     int upperBound() const;
     int lowerBound() const;
 

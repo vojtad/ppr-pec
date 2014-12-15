@@ -5,6 +5,8 @@
 
 using namespace std;
 
+#define D(x) //x
+
 GameBoard::GameBoard()
         : _columns(0), _rows(0), _q(0), _d(0), _gamePlan(0), _currentRow(0), _currentColumn(0)
 {
@@ -36,6 +38,16 @@ GameBoard::~GameBoard()
     delete[] _gamePlan;
 }
 
+int GameBoard::rows() const
+{
+    return _rows;
+}
+
+int GameBoard::columns() const
+{
+    return _columns;
+}
+
 int GameBoard::upperBound() const
 {
     return _q;
@@ -52,30 +64,30 @@ void GameBoard::print() const
     {
         for (int c = 0; c < _columns; ++c)
         {
-            cout.width(4);
-            cout.fill(' ');
-            cout << left << _gamePlan[r][c];
+            cerr.width(4);
+            cerr.fill(' ');
+            cerr << left << _gamePlan[r][c];
         }
 
-        cout << endl;
+        cerr << endl;
     }
 
-    cout << "Lower bound: " << _d << endl;
-    cout << "Upper bound: " << _q << endl;
-    cout << "Current row: " << _currentRow << endl;
-    cout << "Current column: " << _currentColumn << endl;
+    cerr << "Lower bound: " << _d << endl;
+    cerr << "Upper bound: " << _q << endl;
+    cerr << "Current row: " << _currentRow << endl;
+    cerr << "Current column: " << _currentColumn << endl;
 }
 
 void GameBoard::load(const char* filename)
 {
-    cout << "GameBoard::load: " << filename << endl;
+    cerr << "Loading board from '" << filename << "'." << endl;
 
     ifstream in;
 
     in.open(filename, ifstream::in);
     if (!in.is_open())
     {
-        cout << "GameBoard::load: not open" << endl;
+        cerr << "GameBoard::load: not open" << endl;
         return;
     }
 
@@ -101,15 +113,21 @@ void GameBoard::load(const char* filename)
     in.close();
 
     calcLowerBound();
+
+    print();
 }
 
 void GameBoard::randomize()
 {
     _q = 1 + rand() % (_rows * _columns - 1);
 
+    cerr << "Generating random game with row count " << _rows << " and column count " << _columns << " with " << _q << " random moves." << endl;
+
     randomizeStep(1);
 
     calcLowerBound();
+
+    print();
 }
 
 void GameBoard::calcLowerBound()

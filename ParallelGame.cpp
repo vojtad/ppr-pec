@@ -4,6 +4,8 @@
 
 #include "MyMPI.h"
 
+#define D(x) //x
+
 enum Messages
 {
     MsgGameBoard = 1000,
@@ -31,7 +33,7 @@ ParallelGame::ParallelGame(int a, int b)
 
 void ParallelGame::prepare()
 {
-    cout << RANK << ": ParallelGame::prepare" << endl;
+    D(cerr << RANK << ": ParallelGame::prepare" << endl);
 
     if (MyMPI::instance()->isMaster())
     {
@@ -94,7 +96,7 @@ void ParallelGame::prepare()
 
 void ParallelGame::solve()
 {
-    cout << RANK << ": ParallelGame::solve" << endl;
+    D(cerr << RANK << ": ParallelGame::solve" << endl);
 
     if (!MyMPI::instance()->isMaster())
     {
@@ -106,7 +108,7 @@ void ParallelGame::solve()
 
     while (!_finished)
     {
-        cout << RANK << ": active" << endl;
+        D(cerr << RANK << ": active" << endl);
 
         while (!_stack.empty())
         {
@@ -119,7 +121,7 @@ void ParallelGame::solve()
         if (_finished || MyMPI::instance()->size() == 1)
             return;
 
-        cout << RANK << ": idle" << endl;
+        D(cerr << RANK << ": idle" << endl);
 
         if (MyMPI::instance()->isMaster())
         {
@@ -138,9 +140,8 @@ void ParallelGame::solve()
 
 void ParallelGame::initializeStack(int* buffer, int count)
 {
-    cout << RANK << ": ParallelGame::initializeStack: start, stack size = " << count << endl;
-
-    _board.print();
+    D(cerr << RANK << ": ParallelGame::initializeStack: start, stack size = " << count << endl);
+    D(_board.print());
 
     _openMoveCount = 0;
 
@@ -165,12 +166,12 @@ void ParallelGame::initializeStack(int* buffer, int count)
         }
     }
 
-    cout << RANK << ": ParallelGame::initializeStack: done, open move count = " << _openMoveCount << endl;
+    D(cerr << RANK << ": ParallelGame::initializeStack: done, open move count = " << _openMoveCount << endl);
 }
 
 void ParallelGame::sendBoard()
 {
-    cout << RANK << ": ParallelGame::sendBoard" << endl;
+    D(cerr << RANK << ": ParallelGame::sendBoard" << endl);
 
     int bufferSize = 0;
     int* buffer = _board.serialize(&bufferSize);
@@ -185,7 +186,7 @@ void ParallelGame::sendBoard()
 
 void ParallelGame::recvBoard()
 {
-    cout << RANK << ": ParallelGame::recvBoard" << endl;
+    D(cerr << RANK << ": ParallelGame::recvBoard" << endl);
 
     int count = 0;
     MPI_Status status;
@@ -202,19 +203,19 @@ void ParallelGame::recvBoard()
 
     _bestMoves = new int[_board.upperBound()];
 
-    _board.print();
+    D(_board.print());
 }
 
 void ParallelGame::sendWorkRequest()
 {
-    cout << RANK << ": ParallelGame::sendWorkRequest: " << _nextWorkRequestTarget << endl;
+    D(cerr << RANK << ": ParallelGame::sendWorkRequest: " << _nextWorkRequestTarget << endl);
 
     MyMPI::instance()->send(_nextWorkRequestTarget, MsgWorkRequest);
 }
 
 void ParallelGame::sendWork(int target)
 {
-    cout << RANK << ": ParallelGame::sendWork: " << target << ", " << _openMoveCount << endl;
+    D(cerr << RANK << ": ParallelGame::sendWork: " << target << ", " << _openMoveCount << endl);
 
     if (_openMoveCount <= 1)
     {
@@ -259,17 +260,17 @@ void ParallelGame::sendWork(int target)
 
 void ParallelGame::sendWork(int* stack, int stackSize, int target)
 {
-    cout << RANK << ": ParallelGame::sendWork: " << stackSize << ", " << target << ", ";
-    for (int i = 0; i < stackSize; ++i)
-    {
-        if (stack[i] == 1000)
-            cout << " ";
-        else if (stack[i] < 0)
-            cout << "(" << MoveDirectionNames[-stack[i]] << ")";
-        else
-            cout << MoveDirectionNames[stack[i]];
-    }
-    cout << endl;
+    D(cerr << RANK << ": ParallelGame::sendWork: " << stackSize << ", " << target << ", ");
+    D(for (int i = 0; i < stackSize; ++i))
+    D({)
+        D(if (stack[i] == 1000))
+            D(cerr << " ");
+        D(else if (stack[i] < 0))
+            D(cerr << "(" << MoveDirectionNames[-stack[i]] << ")");
+        D(else)
+            D(cerr << MoveDirectionNames[stack[i]]);
+    D(})
+    D(cerr << endl);
 
     if (MyMPI::instance()->rank() > target)
         _tokenColor = 'B';
@@ -279,14 +280,14 @@ void ParallelGame::sendWork(int* stack, int stackSize, int target)
 
 void ParallelGame::sendNoWork(int target)
 {
-    cout << RANK << ": ParallelGame::sendNoWork: " << target << endl;
+    D(cerr << RANK << ": ParallelGame::sendNoWork: " << target << endl);
 
     MyMPI::instance()->send(target, MsgWorkNoWork);
 }
 
 void ParallelGame::sendNewBest()
 {
-    cout << RANK << ": ParallelGame::sendNewBest: new move count " << _bestMoveCount << endl;
+    D(cerr << RANK << ": ParallelGame::sendNewBest: new move count " << _bestMoveCount << endl);
 
     for (int i = 0; i < MyMPI::instance()->size(); ++i)
     {
@@ -309,13 +310,13 @@ void ParallelGame::sendToken(char tokenColor)
     _hasToken = false;
 
     int target = (MyMPI::instance()->rank() + 1) % MyMPI::instance()->size();
-    cout << RANK << ": ParallelGame::sendToken: '" << tokenColor << "' to " << target << endl;
+    D(cerr << RANK << ": ParallelGame::sendToken: '" << tokenColor << "' to " << target << endl);
     MyMPI::instance()->send(&tokenColor, 1, MPI_CHAR, target, MsgToken);
 }
 
 void ParallelGame::sendFinishToSlaves()
 {
-    cout << RANK << ": ParallelGame::sendFinishToSlaves" << endl;
+    D(cerr << RANK << ": ParallelGame::sendFinishToSlaves" << endl);
 
     for (int i = 1; i < MyMPI::instance()->size(); ++i)
     {
@@ -329,12 +330,12 @@ void ParallelGame::handleCommunication(bool block)
 
     if (block)
     {
-        cout << RANK << ": ParallelGame::handleCommunication: sync" << endl;
+        D(cerr << RANK << ": ParallelGame::handleCommunication: sync" << endl);
         MyMPI::instance()->waitForMessage(status);
     }
     else
     {
-        //cout << RANK << ": ParallelGame::handleCommunication: async" << endl;
+        //cerr << RANK << ": ParallelGame::handleCommunication: async" << endl;
         if (!MyMPI::instance()->anyMessagePending(status))
             return;
     }
@@ -367,7 +368,7 @@ void ParallelGame::handleCommunication(bool block)
 
 void ParallelGame::handleWorkRequest(MPI_Status& status)
 {
-    cout << RANK << ": ParallelGame::handleWorkRequest: " << status.MPI_SOURCE << endl;
+    D(cerr << RANK << ": ParallelGame::handleWorkRequest: " << status.MPI_SOURCE << endl);
 
     MyMPI::instance()->recv(status, 0, 0, MPI_CHAR);
 
@@ -379,31 +380,31 @@ void ParallelGame::handleWork(MPI_Status& status)
     int count = 0;
     MyMPI::instance()->getCount(status, MPI_INT, &count);
 
-    cout << RANK << ": ParallelGame::handleWork: " << count << endl;
+    D(cerr << RANK << ": ParallelGame::handleWork: " << count << endl);
 
     if (_stackBuffer.size() < count)
         _stackBuffer.resize(count);
 
     MyMPI::instance()->recv(status, _stackBuffer.data(), count, MPI_INT);
 
-    cout << RANK << ": ParallelGame::handleWork: " << count << ", ";
-    for (int i = 0; i < count; ++i)
-    {
-        if (_stackBuffer[i] == 1000)
-            cout << " ";
-        else if (_stackBuffer[i] < 0)
-            cout << "(" << MoveDirectionNames[-_stackBuffer[i]] << ")";
-        else
-            cout << MoveDirectionNames[_stackBuffer[i]];
-    }
-    cout << endl;
+    D(cerr << RANK << ": ParallelGame::handleWork: " << count << ", ");
+    D(for (int i = 0; i < count; ++i))
+    D({)
+        D(if (_stackBuffer[i] == 1000))
+            D(cerr << " ");
+        D(else if (_stackBuffer[i] < 0))
+            D(cerr << "(" << MoveDirectionNames[-_stackBuffer[i]] << ")");
+        D(else)
+            D(cerr << MoveDirectionNames[_stackBuffer[i]]);
+    D(})
+    D(cerr << endl);
 
     initializeStack(_stackBuffer.data(), count);
 }
 
 void ParallelGame::handleNoWork(MPI_Status& status)
 {
-    cout << RANK << ": ParallelGame::handleNoWork" << endl;
+    D(cerr << RANK << ": ParallelGame::handleNoWork" << endl);
 
     MyMPI::instance()->recv(status, 0, 0, MPI_CHAR);
 
@@ -419,7 +420,7 @@ void ParallelGame::handleNewBest(MPI_Status& status)
 {
     MyMPI::instance()->getCount(status, MPI_INT, &_bestMoveCount);
 
-    cout << RANK << ": ParallelGame::handleNewBest: new best move count " << _bestMoveCount << " from " << status.MPI_SOURCE << endl;
+    D(cerr << RANK << ": ParallelGame::handleNewBest: new best move count " << _bestMoveCount << " from " << status.MPI_SOURCE << endl);
 
     MyMPI::instance()->recv(status, _bestMoves, _bestMoveCount, MPI_INT);
 }
@@ -431,7 +432,7 @@ void ParallelGame::handleToken(MPI_Status& status)
     char newTokenColor = 'B';
     MyMPI::instance()->recv(status, &newTokenColor, 1, MPI_CHAR);
 
-    cout << RANK << ": ParallelGame::handleToken: new color '" << newTokenColor << "', old color = '" << _tokenColor << "'" << endl;
+    D(cerr << RANK << ": ParallelGame::handleToken: new color '" << newTokenColor << "', old color = '" << _tokenColor << "'" << endl);
 
     if (MyMPI::instance()->isMaster())
     {
@@ -456,7 +457,7 @@ void ParallelGame::handleToken(MPI_Status& status)
 
 void ParallelGame::handleFinish(MPI_Status& status)
 {
-    cout << RANK << ": ParallelGame::handleFinish" << endl;
+    D(cerr << RANK << ": ParallelGame::handleFinish" << endl);
 
     MyMPI::instance()->recv(status, 0, 0, MPI_CHAR);
 
@@ -468,7 +469,7 @@ void ParallelGame::handleFinish(MPI_Status& status)
 
 void ParallelGame::finish()
 {
-    cout << RANK << ": ParallelGame::finish" << endl;
+    D(cerr << RANK << ": ParallelGame::finish" << endl);
 
     _finished = true;
 }
